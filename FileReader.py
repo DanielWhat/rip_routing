@@ -1,5 +1,5 @@
 """
-FileReader.py, Author: jbr185, 66360439
+FileReader.py, Author: jbr185, 66360439, dwa110, 28749539
 
 this file contains functions for reading config files
 """
@@ -9,8 +9,8 @@ from Link import Link
 def readConfig(filePath):
     try:
         routerID = -1 #the router id for out daemon
-        inputs = [] #the inpur ports we are listen too
-        outputs = [] #the output connections we are sending too
+        input_ports = [] #the inpur ports we are listen too
+        output_links = [] #the output connections we are sending too
         otherRouterIDs = [] #for keeping track of the router IDs we have to ensure no duplicates
 
         #open the file for reading
@@ -36,27 +36,36 @@ def readConfig(filePath):
 
                 for interface in line: #check each port input
                     interface = checkParameter(interface, int, 1023, 64001) #bound between 1024 and 64000 inclusive
-                    if not (interface in inputs) and not (interface in outputs): #ensure its unique
-                        inputs.append(interface)
+                                       
+                    if not (interface in input_ports) and not (interface in [output.port for output in output_links]): #ensure its unique
+                        input_ports.append(interface)
                     else:
-                        raise ValueError("inferface socket port already in use")
+                        raise ValueError("Inferface socket port already in use")
             elif line.startswith("outputs"):
                 line = line[line.find(' '):].split(',') #split after "outputs"
 
                 for output in line:
                     link = Link() #we need a containing link object
                     output = output.split('-') #split the parts of each output
-
-                    if not (output[0] in outputs) and not (output[0] in inputs):
-                        link.port = checkParameter(output[0], int, 1023, 64001) #first is the unique port number
+                    output[0] = checkParameter(output[0], int, 1023, 64001)
+                    
+                    if not (output[0] in [output.port for output in output_links]) and not (output[0] in input_ports):
+                        link.port = output[0]
+                    else:
+                        raise ValueError("Inferface socket port already in use")
+                        
                     link.metric = checkParameter(output[1], int, -1, 15) #second is the metric
+                    output[2] = checkParameter(output[2], int, 0, 64001)
                     if not (output[2] in otherRouterIDs): #final is unique router id
                         otherRouterIDs.append(output[2])
-                        link.routerID = checkParameter(output[2], int, 0, 64001)
+                        link.routerID = output[2]
+                    else:
+                        error_message = "Router ID {} is duplicated in the configuration file. Router IDs must be unique.".format(output[2])
+                        raise ValueError(error_message)                    
             
-                    outputs.append(link) #add the filled link to the outputs
+                    output_links.append(link) #add the link port to the outputs
             else:
-                raise SyntaxError("sytax error in file \"{0}\", on line {1}".format(filePath, index + 1))
-        return (routerID, inputs, outputs) #return the information in the file
+                raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+        return (routerID, input_ports, output_links) #return the information in the file
     except (ValueError, TypeError): #if we have some value or type error we have a syntax error in the file
-        raise SyntaxError("sytax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+        raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
