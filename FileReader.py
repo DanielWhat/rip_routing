@@ -9,8 +9,8 @@ from Link import Link
 def readConfig(filePath):
     try:
         routerID = -1 #the router id for out daemon
-        input_ports = [] #the input ports we are listening to
-        output_links = [] #the output connections we are sending to
+        inputPorts = [] #the input ports we are listening to
+        outputLinks = [] #the output connections we are sending to
         otherRouterIDs = [] #for keeping track of the router IDs we have to ensure no duplicates
 
         #open the file for reading
@@ -37,8 +37,8 @@ def readConfig(filePath):
                 for interface in line: #check each port input
                     interface = checkParameter(interface, int, 1023, 64001) #bound between 1024 and 64000 inclusive
                                        
-                    if not (interface in input_ports) and not (interface in [output.port for output in output_links]): #ensure its unique
-                        input_ports.append(interface)
+                    if not (interface in inputPorts) and not (interface in [output.port for output in outputLinks]): #ensure its unique
+                        inputPorts.append(interface)
                     else:
                         raise ValueError("Inferface socket port already in use")
             elif line.startswith("outputs"):
@@ -49,7 +49,7 @@ def readConfig(filePath):
                     output = output.split('-') #split the parts of each output
                     output[0] = checkParameter(output[0], int, 1023, 64001)
                     
-                    if not (output[0] in [output.port for output in output_links]) and not (output[0] in input_ports):
+                    if not (output[0] in [output.port for output in outputLinks]) and not (output[0] in inputPorts):
                         link.port = output[0]
                     else:
                         raise ValueError("Inferface socket port already in use")
@@ -62,9 +62,9 @@ def readConfig(filePath):
                     else:
                         raise ValueError("Router ID {} is duplicated in the configuration file. Router IDs must be unique.".format(output[2]))                    
             
-                    output_links.append(link) #add the link port to the outputs
+                    outputLinks.append(link) #add the link port to the outputs
             else:
                 raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
-        return (routerID, input_ports, output_links) #return the information in the file
+        return (routerID, inputPorts, outputLinks) #return the information in the file
     except (ValueError, TypeError): #if we have some value or type error we have a syntax error in the file
         raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
