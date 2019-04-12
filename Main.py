@@ -1,5 +1,5 @@
 """
-Main.py, authors: jbr185, 66360439 and dwa###, ########
+Main.py, authors: jbr185, 66360439 and dwa110, 28749539
 
 The main entry point for the program/daemon
 """
