@@ -9,8 +9,8 @@ from Link import Link
 def readConfig(filePath):
     try:
         routerID = -1 #the router id for out daemon
-        input_ports = [] #the inpur ports we are listen too
-        output_links = [] #the output connections we are sending too
+        input_ports = [] #the input ports we are listening to
+        output_links = [] #the output connections we are sending to
         otherRouterIDs = [] #for keeping track of the router IDs we have to ensure no duplicates
 
         #open the file for reading
@@ -60,8 +60,7 @@ def readConfig(filePath):
                         otherRouterIDs.append(output[2])
                         link.routerID = output[2]
                     else:
-                        error_message = "Router ID {} is duplicated in the configuration file. Router IDs must be unique.".format(output[2])
-                        raise ValueError(error_message)                    
+                        raise ValueError("Router ID {} is duplicated in the configuration file. Router IDs must be unique.".format(output[2]))                    
             
                     output_links.append(link) #add the link port to the outputs
             else:
