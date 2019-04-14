@@ -1,6 +1,7 @@
 """
 rip_packet.py, Author: jbr185, 66360439, dwa110, 28749539
 """
+import datetime
 
 RIP_ENTRY_SIZE = 20
 RIP_HEADER_SIZE = 4
@@ -48,8 +49,9 @@ def is_packet_valid(packet_bytearray):
   elif packet_bytearray[1] != RIP_VERSION_NUM:
     return False
   
-  #the next two fields must be 0 as per the specification
-  elif packet_bytearray[2] != 0 or packet_bytearray[3] != 0:
+  #in the specification this field is 0, but we have put the sending router's ID here instead
+  sending_router_id = (packet_bytearray[2] << 8) + packet_bytearray[3]
+  if sending_router_id > 64000 or sending_router_id < 1:
     return False
   
   num_rip_entries = (len(packet_bytearray) - RIP_HEADER_SIZE) // RIP_ENTRY_SIZE
@@ -87,7 +89,7 @@ def is_packet_valid(packet_bytearray):
 
 
 
-def generate_rip_response_packet(routing_table, router_id_keys):
+def generate_rip_response_packet(own_router_id, routing_table, router_id_keys):
   """
   Takes a routing table (a dictionary with router IDs as keys) and a list of 
   router IDs. Returns a RIP packet in the form of a bytearray.
@@ -104,7 +106,10 @@ def generate_rip_response_packet(routing_table, router_id_keys):
   
   packet[0] = RESPONSE_PACKET_COMMAND_NUM
   packet[1] = RIP_VERSION_NUM
-  packet[2] = packet[3] = 0 #these two bytes must be 0
+  
+  #adding the own router ID
+  packet[2] = own_router_id >> 8
+  packet[3] = own_router_id - own_router_id >> 8 << 8
   
   for (i, router_id) in enumerate(router_id_keys):
     packet[4 + i*RIP_ENTRY_SIZE] = 0
@@ -131,21 +136,18 @@ def generate_rip_response_packet(routing_table, router_id_keys):
     
   return packet
 
+#routing_table = dict();
 
-import datetime
+#route_1 = Route(1234, 1234, 4321, 1, datetime.datetime.now())
+#routing_table[1234] = route_1
 
-routing_table = dict();
+#route_2 = Route(4321, 4321, 5321, 1, datetime.datetime.now())
+#routing_table[4321] = route_2
 
-route_1 = Route(1234, 1234, 4321, 1, datetime.datetime.now())
-routing_table[1234] = route_1
+#route_3 = Route(4021, 4021, 5121, 1, datetime.datetime.now())
+#routing_table[4021] = route_3
 
-route_2 = Route(4321, 4321, 5321, 1, datetime.datetime.now())
-routing_table[4321] = route_2
-
-route_3 = Route(4021, 4021, 5121, 1, datetime.datetime.now())
-routing_table[4021] = route_3
-
-print(is_packet_valid(generate_rip_response_packet(routing_table, [1234, 4321, 4021])))
+#print(is_packet_valid(generate_rip_response_packet(1232, routing_table, [1234, 4321, 4021])))
     
   
   
