@@ -5,7 +5,7 @@ The main entry point for the program/daemon
 """
 from MyUtils import getCommandLineArgument
 from FileReader import readConfig
-import routing_table
+import routing_table 
 import select
 from rip_sockets import generate_sockets
 from sys import exit
@@ -46,6 +46,12 @@ def main():
     routing_table.initialise_routing_table(rip_routing_table, output_links)
     #start timeout expiry process here @@@
     
+    print("*" * 10, "Initial Routing Table", "*" * 10)
+    for key in rip_routing_table.keys():
+        print(rip_routing_table[key])
+        print("")
+    
+    
     # ************ ENTER INFINITE SELECT LOOP ************
     while True:
         #listen for incoming packets  
@@ -74,7 +80,13 @@ def main():
                 print(error)
                 exit()       
             
-            #here we would send the packet away for processing @@@    
-            print(request_packet)
+            #here we would send the packet away for processing @@@
+            routing_table.process_packet(rip_routing_table, request_packet)
+            
+            #print routing table
+            print("*" * 10, "Routing Table", "*" * 10)
+            for key in rip_routing_table.keys():
+                print(rip_routing_table[key])
+                print("")
 
 main()

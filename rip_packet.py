@@ -2,7 +2,7 @@
 rip_packet.py, Author: jbr185, 66360439, dwa110, 28749539
 """
 import datetime
-import routing_table
+import Route
 
 RIP_ENTRY_SIZE = 20
 RIP_HEADER_SIZE = 4
@@ -12,10 +12,32 @@ RIP_VERSION_NUM = 2
 ADDRESS_FAMILY_IDENTIFIER = 1 #1 is unassigned, so we are using it to indicate router IDs
 
 
+def get_packet_data(rip_routing_table, packet_bytearray):
+  """
+  Takes a valid RIP packet and returns the sender's router ID and a list of 
+  routes generated from the RIP Entry field.
+  """
+  list_of_routes = []
+  sending_router_id = (packet_bytearray[2] << 8) + packet_bytearray[3]
+  
+  num_rip_entries = (len(packet_bytearray) - RIP_HEADER_SIZE) // RIP_ENTRY_SIZE
+  for i in range(num_rip_entries):
+    rip_entry = packet_bytearray[RIP_HEADER_SIZE + i*RIP_ENTRY_SIZE:RIP_HEADER_SIZE + (i+1)*RIP_ENTRY_SIZE]
+    
+    router_id = (rip_entry[4] << 8*3) + (rip_entry[5] << 8*2) + (rip_entry[6] << 8) + rip_entry[7]
+    metric = (rip_entry[16] << 8*3) + (rip_entry[17] << 8*2) + (rip_entry[18] << 8) + rip_entry[19]
+    
+    #Generate a route object from the RIP entry the router id advertising
+    list_of_routes.append(Route.Route(router_id, sending_router_id, rip_routing_table[sending_router_id].gateway_port, min(rip_routing_table[sending_router_id].cost + metric, 16), datetime.datetime.now()))
+    
+  return sending_router_id, list_of_routes
+
+
 
 def is_packet_valid(packet_bytearray):
   """
-  Takes a packet and returns true or false respectively depending if the packet is valid. 
+  Takes a packet and returns true or false respectively depending if the packet 
+  is valid. 
   """
 
   #don't accept if the packet contains less than 1 RIP packet, or more than 25 RIP packets, or rip packet(s) that does/do not contain 20 bytes
@@ -34,6 +56,8 @@ def is_packet_valid(packet_bytearray):
   sending_router_id = (packet_bytearray[2] << 8) + packet_bytearray[3]
   if sending_router_id > 64000 or sending_router_id < 1:
     return False
+  
+  #elif @@ need a statement to reject packets from valid router IDs that are not direct neighbours
   
   num_rip_entries = (len(packet_bytearray) - RIP_HEADER_SIZE) // RIP_ENTRY_SIZE
   for i in range(num_rip_entries):
@@ -90,7 +114,7 @@ def generate_rip_response_packet(own_router_id, routing_table, router_id_keys):
   
   #adding the own router ID
   packet[2] = own_router_id >> 8
-  packet[3] = own_router_id - own_router_id >> 8 << 8
+  packet[3] = own_router_id - (own_router_id >> 8 << 8)
   
   for (i, router_id) in enumerate(router_id_keys):
     packet[4 + i*RIP_ENTRY_SIZE] = 0
@@ -117,10 +141,15 @@ def generate_rip_response_packet(own_router_id, routing_table, router_id_keys):
     
   return packet
 
+
+
+
+
+
 #routing_table = dict();
 
-route_1 = routing_table.Route(1234, 1234, 4321, 1, datetime.datetime.now())
-print(route_1)
+#route_1 = routing_table.Route(1234, 1234, 4321, 1, datetime.datetime.now())
+#print(route_1)
 #routing_table[1234] = route_1
 
 #route_2 = Route(4321, 4321, 5321, 1, datetime.datetime.now())
