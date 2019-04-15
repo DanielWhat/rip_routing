@@ -2,6 +2,7 @@
 rip_packet.py, Author: jbr185, 66360439, dwa110, 28749539
 """
 import datetime
+import routing_table
 
 RIP_ENTRY_SIZE = 20
 RIP_HEADER_SIZE = 4
@@ -9,26 +10,6 @@ MAX_NUM_RIP_ENTRIES = 25
 RESPONSE_PACKET_COMMAND_NUM = 2
 RIP_VERSION_NUM = 2
 ADDRESS_FAMILY_IDENTIFIER = 1 #1 is unassigned, so we are using it to indicate router IDs
-
-
-class Route(object):
-  
-  def __init__(self, address, first_hop_router_id, first_hop_port_num, cost, time):
-    self.destination_addr = address
-    self.gateway = first_hop_router_id
-    self.gateway_port = first_hop_port_num
-    self.cost = cost
-    self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=90)
-  
-  @property
-  def time(self):
-    return self.__end_time
-  
-  @time.setter
-  def time(self, time):
-    self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=90)
 
 
 
@@ -138,7 +119,8 @@ def generate_rip_response_packet(own_router_id, routing_table, router_id_keys):
 
 #routing_table = dict();
 
-#route_1 = Route(1234, 1234, 4321, 1, datetime.datetime.now())
+route_1 = routing_table.Route(1234, 1234, 4321, 1, datetime.datetime.now())
+print(route_1)
 #routing_table[1234] = route_1
 
 #route_2 = Route(4321, 4321, 5321, 1, datetime.datetime.now())
@@ -147,7 +129,7 @@ def generate_rip_response_packet(own_router_id, routing_table, router_id_keys):
 #route_3 = Route(4021, 4021, 5121, 1, datetime.datetime.now())
 #routing_table[4021] = route_3
 
-#print(is_packet_valid(generate_rip_response_packet(1232, routing_table, [1234, 4321, 4021])))
+#print(generate_rip_response_packet(1232, routing_table, [1234, 4321, 4021]))
     
   
   

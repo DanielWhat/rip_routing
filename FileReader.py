@@ -64,7 +64,7 @@ def readConfig(filePath):
             
                     outputLinks.append(link) #add the link port to the outputs
             else:
-                raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+                raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
         return (routerID, inputPorts, outputLinks) #return the information in the file
-    except (ValueError, TypeError): #if we have some value or type error we have a syntax error in the file
-        raise SyntaxError("syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+    except (ValueError, TypeError) as error: #if we have some value or type error we have a syntax error in the file
+        raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
