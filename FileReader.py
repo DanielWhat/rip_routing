@@ -67,4 +67,5 @@ def readConfig(filePath):
                 raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
         return (routerID, inputPorts, outputLinks) #return the information in the file
     except (ValueError, TypeError) as error: #if we have some value or type error we have a syntax error in the file
+        print(error)
         raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))

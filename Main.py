@@ -9,7 +9,7 @@ import routing_table
 import select
 from rip_timer import rip_update_timer
 from rip_sockets import generate_sockets
-from sys import exit
+from sys import exit, argv
 
 class Daemon:
     """
@@ -44,9 +44,10 @@ class Router(object):
 
 def main():
     rip_routing_table = dict()
+    filename = argv[1]
     
     #get directly connected routing info
-    own_router_id, input_ports, output_links = readConfig("test.txt")
+    own_router_id, input_ports, output_links = readConfig(filename)
     router = Router(own_router_id, input_ports, output_links)
     
     #configure input sockets

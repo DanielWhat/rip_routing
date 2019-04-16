@@ -32,9 +32,9 @@ def process_packet(routing_table, packet_bytearray):
   
   #only do anything if the packet is valid
   if is_packet_valid(packet_bytearray):
-    
     sending_router_id, routes_list = get_packet_data(routing_table, packet_bytearray)
     
+    routing_table[sending_router_id].time = datetime.datetime.now() #we just received an update from this router so the link must be working -- @@@ this is not in RIP specification
     
     for route in routes_list:
       existing_route = routing_table.get(route.destination_addr)
@@ -44,6 +44,10 @@ def process_packet(routing_table, packet_bytearray):
         route.time = datetime.datetime.now() #re-init time
         route.route_change_flag = True
         routing_table[route.destination_addr] = route
+        
+        
+      elif existing_route is None and route.cost >= 16: #no point in adding a new route that is un-usable
+        print(route.destination_addr)
         
         
       #if we are already using this router to get to this location (i.e the router is updating us about a route we are using)
@@ -65,9 +69,8 @@ def process_packet(routing_table, packet_bytearray):
         route.route_change_flag = True
         routing_table[route.destination_addr] = route #add to routing table
         
-        
   else:
-    print("*" * 10, "A packet has been dropped", "*" * 10)
+    print("*" * 10, "An invalid packet has been dropped", "*" * 10)
           
           
           
