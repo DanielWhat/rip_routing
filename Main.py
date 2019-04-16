@@ -7,6 +7,7 @@ from MyUtils import getCommandLineArgument
 from FileReader import readConfig
 import routing_table 
 import select
+from rip_timer import rip_update_timer
 from rip_sockets import generate_sockets
 from sys import exit
 
@@ -33,18 +34,30 @@ class Daemon:
             continue
 
 
+
+class Router(object):
+    def __init__(self, router_id, input_ports, output_links):
+        self.router_id = router_id
+        self.input_ports = input_ports
+        self.output_links = output_links
+
+
 def main():
     rip_routing_table = dict()
-    #get directly connected routing into
-    routerID, input_ports, output_links = readConfig("test.txt")
+    
+    #get directly connected routing info
+    own_router_id, input_ports, output_links = readConfig("test.txt")
+    router = Router(own_router_id, input_ports, output_links)
     
     #configure input sockets
-    socket_list = generate_sockets(input_ports)
+    socket_list = generate_sockets(router.input_ports)
     socket_fd_list = [socket_obj.fileno() for socket_obj in socket_list]
     socket_dict = {socket_obj.fileno(): socket_obj for socket_obj in socket_list}
     
-    routing_table.initialise_routing_table(rip_routing_table, output_links)
-    #start timeout expiry process here @@@
+    routing_table.initialise_routing_table(rip_routing_table, router.output_links)
+    
+    #start 30 second periodic update timer
+    rip_update_timer(rip_routing_table, router, output_links) #@@@ when an exception occurs this timer needs to be stopped as well
     
     print("*" * 10, "Initial Routing Table", "*" * 10)
     for key in rip_routing_table.keys():
@@ -80,7 +93,7 @@ def main():
                 print(error)
                 exit()       
             
-            #here we would send the packet away for processing @@@
+            #send the packet away to be processed
             routing_table.process_packet(rip_routing_table, request_packet)
             
             #print routing table
