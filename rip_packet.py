@@ -39,7 +39,7 @@ def get_packet_data(router, packet_bytearray):
 
 
 
-def is_packet_valid(packet_bytearray, is_testing_mode=False):
+def is_packet_valid(packet_bytearray, router, is_testing_mode=False):
   """
   Takes a packet and returns true or false respectively depending if the packet 
   is valid. 
@@ -69,6 +69,11 @@ def is_packet_valid(packet_bytearray, is_testing_mode=False):
     if (is_testing_mode):
       print("The sending router ID value of {} was incorrect.".format(sending_router_id))    
     return False
+  
+  elif sending_router_id not in [link.routerID for link in router.output_links]:
+    if (is_testing_mode):
+      print("The sending router ID value of {} was not a directly connected router".format(sending_router_id))    
+    return False    
   
   #elif @@ need a statement to reject packets from valid router IDs that are not direct neighbours
   
@@ -119,11 +124,11 @@ def is_packet_valid(packet_bytearray, is_testing_mode=False):
 
 
 
-def print_packet_contents(packet_bytearray):
+def print_packet_contents(packet_bytearray, router):
     """
     Prints the contents of a RIP packet for ease of visualisation by humans.
     """
-    if not is_packet_valid(packet_bytearray, True):
+    if not is_packet_valid(packet_bytearray, router, True):
         raise ValueError("The packet is not syntatically valid.")
       
     #print the header fields

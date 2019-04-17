@@ -31,7 +31,7 @@ def process_packet(router, packet_bytearray):
   """
   
   #only do anything if the packet is valid
-  if is_packet_valid(packet_bytearray):
+  if is_packet_valid(packet_bytearray, router):
     sending_router_id, routes_list = get_packet_data(router, packet_bytearray)
     
     link_to_sending_router = [link for link in router.output_links if link.routerID == sending_router_id][0]

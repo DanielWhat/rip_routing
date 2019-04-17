@@ -3,6 +3,7 @@ Main.py, authors: jbr185, 66360439 and dwa110, 28749539
 
 The main entry point for the program/daemon
 """
+
 from MyUtils import getCommandLineArgument
 from FileReader import readConfig
 import routing_table 
@@ -68,7 +69,6 @@ def main():
         print(router.routing_table[key])
         print("")
     
-    
     # ************ ENTER INFINITE SELECT LOOP ************
     while True:
         #listen for incoming packets  
@@ -105,5 +105,10 @@ def main():
             for key in router.routing_table.keys():
                 print(router.routing_table[key])
                 print("")
+        
+        
 
-main()
+if __name__ == '__main__':
+    main()
+        
+    
