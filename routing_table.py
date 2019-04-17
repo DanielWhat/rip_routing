@@ -4,7 +4,7 @@ routing_table.py, Author: jbr185, 66360439, dwa110, 28749539
 
 import datetime
 import Link
-import Route
+from Route import Route
 from rip_packet import is_packet_valid, get_packet_data
     
     
@@ -20,11 +20,11 @@ def initialise_routing_table(routing_table, output_links):
   
   for link in output_links:
     #put each directly connected route into the routing table
-    routing_table[link.routerID] = Route.Route(link.routerID, link.routerID, link.port, link.metric, datetime.datetime.now())
+    routing_table[link.routerID] = Route(link.routerID, link.routerID, link.port, link.metric, datetime.datetime.now())
  
     
     
-def process_packet(routing_table, packet_bytearray):
+def process_packet(router, packet_bytearray):
   """
   Processes the packet according to the RIP specifiction. This function may or 
   may not edit the routing_table depending on the contents of the packet.
@@ -32,42 +32,59 @@ def process_packet(routing_table, packet_bytearray):
   
   #only do anything if the packet is valid
   if is_packet_valid(packet_bytearray):
-    sending_router_id, routes_list = get_packet_data(routing_table, packet_bytearray)
+    sending_router_id, routes_list = get_packet_data(router, packet_bytearray)
     
-    routing_table[sending_router_id].time = datetime.datetime.now() #we just received an update from this router so the link must be working -- @@@ this is not in RIP specification
+    link_to_sending_router = [link for link in router.output_links if link.routerID == sending_router_id][0]
+    sending_router_gateway_port = link_to_sending_router.port
+    cost_to_sending_router = link_to_sending_router.metric     
+    
+    #since sending_router_id is a directly connected router this can only be true if; a directly connected router went down, 
+    #became unreachable, was deleted from the routing table, and is now back up
+    if router.routing_table.get(sending_router_id) == None: 
+      #make a new route for the deleted directly connected router
+      direct_route = Route(sending_router_id, sending_router_id, sending_router_gateway_port, cost_to_sending_router, datetime.datetime.now())
+      
+      #add this directly connected router back into the routing table
+      router.routing_table[sending_router_id] = direct_route
+      
+    #if the current optimal route to the sending router is going directly to the sending router
+    elif router.routing_table[sending_router_id].gateway == sending_router_id:
+      router.routing_table[sending_router_id].cost = cost_to_sending_router #re-initialise the cost (this covers an edge case where the route goes into garbage collection)
+      router.routing_table[sending_router_id].time = datetime.datetime.now() #we just received an update from this router so the link we are using must be working => refresh
+      router.routing_table[sending_router_id].garbage_collection_time = None #if we were garbage collecting before, we shouldn't be anymore
     
     for route in routes_list:
-      existing_route = routing_table.get(route.destination_addr)
+      existing_route = router.routing_table.get(route.destination_addr)
       
       #if no route exists in the current routing table and the cost is not infinite, then add to routing table
       if existing_route is None and route.cost < 16:
         route.time = datetime.datetime.now() #re-init time
-        route.route_change_flag = True
-        routing_table[route.destination_addr] = route
+        router.routing_table[route.destination_addr] = route
         
         
       elif existing_route is None and route.cost >= 16: #no point in adding a new route that is un-usable
-        print(route.destination_addr)
+        pass
         
         
       #if we are already using this router to get to this location (i.e the router is updating us about a route we are using)
       elif existing_route.gateway == sending_router_id:
-        routing_table[route.destination_addr].time = datetime.datetime.now() #re-init the timer
+        router.routing_table[route.destination_addr].time = datetime.datetime.now() #re-init the timer
         
         #if the cost has changed
         if existing_route.cost != route.cost:
-          routing_table[route.destination_addr].cost = route.cost #change the cost for the entry in the routing table
-          routing_table[route.destination_addr].route_change_flag = True
+          router.routing_table[route.destination_addr].cost = route.cost #change the cost for the entry in the routing table
+          router.routing_table[route.destination_addr].garbage_collection_time = None #if we were garbage collecting before, we shouldn't be anymore
           
           if (route.cost == 16):
-            pass #start deletion process @@@
+            #the route should be garbage collected 120 seconds from now
+            router.routing_table[route.destination_addr].garbage_collection_time = datetime.datetime.now() + datetime.timedelta(seconds=120)
+            router.routing_table[route.destination_addr].route_change_flag = True #Andreas said to only to implement triggered updates for invalid routes.
          
           
       #if we have just found a lower cost path, then add it to routing table    
       elif existing_route.cost > route.cost:
         route.time = datetime.datetime.now() #init the timer
-        route.route_change_flag = True
-        routing_table[route.destination_addr] = route #add to routing table
+        router.routing_table[route.destination_addr] = route #add to routing table
         
   else:
     print("*" * 10, "An invalid packet has been dropped", "*" * 10)

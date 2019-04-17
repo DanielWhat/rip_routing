@@ -12,11 +12,12 @@ class Route(object):
     self.gateway_port = first_hop_port_num
     self.cost = cost
     self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=90)
+    self.__end_time = time + datetime.timedelta(seconds=180)
     self.route_change_flag = route_change
+    self.garbage_collection_time = None
     
   def __str__(self):
-    return "Destination address: {}\nGateway: \n   Router ID: {}\n   Port Number: {}\nMetric: {}\nExpires: {}".format(self.destination_addr, self.gateway, self.gateway_port, self.cost, self.time)
+    return "Destination address: {}\nGateway: \n   Router ID: {}\n   Port Number: {}\nMetric: {}\nExpires: {}\nGarbage Collection Time: {}".format(self.destination_addr, self.gateway, self.gateway_port, self.cost, self.time, self.garbage_collection_time)
   
   @property
   def time(self):
@@ -25,4 +26,4 @@ class Route(object):
   @time.setter
   def time(self, time):
     self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=90)
+    self.__end_time = time + datetime.timedelta(seconds=180)

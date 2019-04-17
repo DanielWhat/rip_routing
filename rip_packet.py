@@ -12,7 +12,7 @@ RIP_VERSION_NUM = 2
 ADDRESS_FAMILY_IDENTIFIER = 1 #1 is unassigned, so we are using it to indicate router IDs
 
 
-def get_packet_data(rip_routing_table, packet_bytearray):
+def get_packet_data(router, packet_bytearray):
   """
   Takes a valid RIP packet and returns the sender's router ID and a list of 
   routes generated from the RIP Entry field.
@@ -27,8 +27,13 @@ def get_packet_data(rip_routing_table, packet_bytearray):
     router_id = (rip_entry[4] << 8*3) + (rip_entry[5] << 8*2) + (rip_entry[6] << 8) + rip_entry[7]
     metric = (rip_entry[16] << 8*3) + (rip_entry[17] << 8*2) + (rip_entry[18] << 8) + rip_entry[19]
     
-    #Generate a route object from the RIP entry the router id advertising
-    list_of_routes.append(Route(router_id, sending_router_id, rip_routing_table[sending_router_id].gateway_port, min(rip_routing_table[sending_router_id].cost + metric, 16), datetime.datetime.now()))
+    #get info about the link we just received data from
+    link_to_sending_router = [link for link in router.output_links if link.routerID == sending_router_id][0]
+    sending_router_gateway_port = link_to_sending_router.port
+    cost_to_sending_router = link_to_sending_router.metric
+    
+    #Generate a route object from the RIP entry
+    list_of_routes.append(Route(router_id, sending_router_id, sending_router_gateway_port, min(cost_to_sending_router + metric, 16), datetime.datetime.now()))
     
   return sending_router_id, list_of_routes
 

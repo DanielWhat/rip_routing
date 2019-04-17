@@ -7,7 +7,7 @@ from MyUtils import getCommandLineArgument
 from FileReader import readConfig
 import routing_table 
 import select
-from rip_timer import rip_update_timer
+from rip_timer import start_background_timers
 from rip_sockets import generate_sockets
 from sys import exit, argv
 
@@ -36,33 +36,36 @@ class Daemon:
 
 
 class Router(object):
-    def __init__(self, router_id, input_ports, output_links):
+    def __init__(self, routing_table, router_id, input_ports, output_links):
+        self.routing_table = routing_table
         self.router_id = router_id
         self.input_ports = input_ports
         self.output_links = output_links
+        self.next_periodic_update = None
+        self.next_triggered_update = None
+        self.triggered_update_routes = []
 
 
 def main():
-    rip_routing_table = dict()
     filename = argv[1]
     
     #get directly connected routing info
     own_router_id, input_ports, output_links = readConfig(filename)
-    router = Router(own_router_id, input_ports, output_links)
+    router = Router(dict(), own_router_id, input_ports, output_links)
     
     #configure input sockets
     socket_list = generate_sockets(router.input_ports)
     socket_fd_list = [socket_obj.fileno() for socket_obj in socket_list]
     socket_dict = {socket_obj.fileno(): socket_obj for socket_obj in socket_list}
     
-    routing_table.initialise_routing_table(rip_routing_table, router.output_links)
+    routing_table.initialise_routing_table(router.routing_table, router.output_links)
     
-    #start 30 second periodic update timer
-    rip_update_timer(rip_routing_table, router, output_links) #@@@ when an exception occurs this timer needs to be stopped as well
+    #start background processes/timer
+    start_background_timers(router) #@@@ when an exception occurs this timer needs to be stopped as well
     
     print("*" * 10, "Initial Routing Table", "*" * 10)
-    for key in rip_routing_table.keys():
-        print(rip_routing_table[key])
+    for key in router.routing_table.keys():
+        print(router.routing_table[key])
         print("")
     
     
@@ -95,12 +98,12 @@ def main():
                 exit()       
             
             #send the packet away to be processed
-            routing_table.process_packet(rip_routing_table, request_packet)
+            routing_table.process_packet(router, request_packet)
             
             #print routing table
             print("*" * 10, "Routing Table", "*" * 10)
-            for key in rip_routing_table.keys():
-                print(rip_routing_table[key])
+            for key in router.routing_table.keys():
+                print(router.routing_table[key])
                 print("")
 
 main()
