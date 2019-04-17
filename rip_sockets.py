@@ -4,6 +4,7 @@ rip_packet.py, Author: jbr185, 66360439, dwa110, 28749539
 
 import socket
 from sys import exit
+from rip_packet import generate_rip_response_packet 
 
 def generate_sockets(input_ports):
     """
@@ -41,6 +42,45 @@ def generate_sockets(input_ports):
             exit()
             
     return socket_list
+
+
+
+def send_routes_to_neighbours(router, route_ids_to_send):
+    """
+    Takes a router object, routing_table, and a list of router IDs to send. And 
+    sends an update packet to all neighbours with the routes to each router in
+    the list of router IDs.
+    """
+    
+    #create socket from where we will be sending --- this is probably bad practice @@@
+    try:
+        socket_obj = socket.socket(type=socket.SOCK_DGRAM)
+        
+    except Exception as error:
+        print("The following exception occured when trying to open a socket:")
+        print(error)
+        print("")
+        print("*" * 10, "SINCE SOCKET COULD NOT BE OPENED UPDATE WILL BE SKIPPED.", "*" * 10)
+        #no need to close socket if it could not be created to begin with
+    
+    #if no exception occurs then proceed with the following    
+    else:
+        neighbouring_router_links = [link for link in router.output_links]
+
+        #send an update to each neighbouring router
+        for neighbouring_router_link in neighbouring_router_links:
+            packet = generate_rip_response_packet(router.router_id, neighbouring_router_link.routerID, router.routing_table, route_ids_to_send) #create the packet 
+            
+            try:
+                print(packet)
+                socket_obj.sendto(packet, ('127.0.0.1', neighbouring_router_link.port)) #send the packet
+            except Exception as error:
+                print("The following exception occured when trying to open a socket. The update packet to router {} has been skipped.".format(neighbouring_router_link.routerID))
+                print(error)
+                print("") 
+                
+    finally: #code here is executed regardless of any exceptions 
+        socket_obj.close()    
 
 
 #print(generate_sockets([1234, 1235, 1236]))
