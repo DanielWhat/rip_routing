@@ -45,7 +45,8 @@ def process_packet(router, packet_bytearray):
       direct_route = Route(sending_router_id, sending_router_id, sending_router_gateway_port, cost_to_sending_router, datetime.datetime.now())
       
       #add this directly connected router back into the routing table
-      router.routing_table[sending_router_id] = direct_route
+      router.routing_table[sending_router_id] = direct_route  
+      
       
     #if the current optimal route to the sending router is going directly to the sending router
     elif router.routing_table[sending_router_id].gateway == sending_router_id:
