@@ -40,7 +40,7 @@ def readConfig(filePath):
                     if not (interface in inputPorts) and not (interface in [output.port for output in outputLinks]): #ensure its unique
                         inputPorts.append(interface)
                     else:
-                        raise ValueError("Inferface socket port already in use")
+                        raise ValueError("Inferface socket port {} already in use".format(interface))
             elif line.startswith("outputs"):
                 line = line[line.find(' '):].split(',') #split after "outputs"
 
@@ -52,7 +52,7 @@ def readConfig(filePath):
                     if not (output[0] in [output.port for output in outputLinks]) and not (output[0] in inputPorts):
                         link.port = output[0]
                     else:
-                        raise ValueError("Inferface socket port already in use")
+                        raise ValueError("Inferface socket port {} already in use".format(output[0]))
                         
                     link.metric = checkParameter(output[1], int, -1, 15) #second is the metric
                     output[2] = checkParameter(output[2], int, 0, 64001)
