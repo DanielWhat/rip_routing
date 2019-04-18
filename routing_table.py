@@ -38,9 +38,11 @@ def process_packet(router, packet_bytearray):
     sending_router_gateway_port = link_to_sending_router.port
     cost_to_sending_router = link_to_sending_router.metric     
     
-    #since sending_router_id is a directly connected router this can only be true if; a directly connected router went down, 
-    #became unreachable, was deleted from the routing table, and is now back up
-    if router.routing_table.get(sending_router_id) == None: 
+    #since sending_router_id is a directly connected router the first condition can only be true if; a directly connected router went down, 
+    #became unreachable, was deleted from the routing table, and is now back up.
+    #
+    #the second condition is for when a router comes out of garbage collection, and we were previously using an indirect route to get to them (see test_2)
+    if router.routing_table.get(sending_router_id) == None or router.routing_table[sending_router_id].cost > cost_to_sending_router: 
       #make a new route for the deleted directly connected router
       direct_route = Route(sending_router_id, sending_router_id, sending_router_gateway_port, cost_to_sending_router, datetime.datetime.now())
       
@@ -52,7 +54,8 @@ def process_packet(router, packet_bytearray):
     elif router.routing_table[sending_router_id].gateway == sending_router_id:
       router.routing_table[sending_router_id].cost = cost_to_sending_router #re-initialise the cost (this covers an edge case where the route goes into garbage collection)
       router.routing_table[sending_router_id].time = datetime.datetime.now() #we just received an update from this router so the link we are using must be working => refresh
-      router.routing_table[sending_router_id].garbage_collection_time = None #if we were garbage collecting before, we shouldn't be anymore
+      router.routing_table[sending_router_id].garbage_collection_time = None #if we were garbage collecting before, we shouldn't be anymore    
+    
     
     for route in routes_list:
       existing_route = router.routing_table.get(route.destination_addr)
