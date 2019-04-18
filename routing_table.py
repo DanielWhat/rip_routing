@@ -58,9 +58,11 @@ def process_packet(router, packet_bytearray):
       
       #if no route exists in the current routing table and the cost is not infinite, then add to routing table
       if existing_route is None and route.cost < 16:
-        route.time = datetime.datetime.now() #re-init time
-        router.routing_table[route.destination_addr] = route
-        
+        #make sure it's not a route to ourselves!
+        if (route.destination_addr != router.router_id):
+          route.time = datetime.datetime.now() #re-init time
+          router.routing_table[route.destination_addr] = route
+          
         
       elif existing_route is None and route.cost >= 16: #no point in adding a new route that is un-usable
         pass

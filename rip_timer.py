@@ -42,7 +42,7 @@ def rip_garbage_collection(router):
     timer = threading.Timer(1, rip_garbage_collection, [router])
     timer.start()
     
-    is_trigged_update_nessesary = False
+    is_triggered_update_nessesary = False
     router_ids_to_be_deleted = []
     current_time = datetime.datetime.now()
     for router_id in router.routing_table.keys():
@@ -72,13 +72,13 @@ def rip_garbage_collection(router):
         #if the route has changed, then it now must be advertised in a triggered response
         if router.routing_table[router_id].route_change_flag:
             router.routing_table[router_id].route_change_flag = False
-            is_trigged_update_nessesary = is_trigged_update_nessesary or True
+            is_triggered_update_nessesary = is_triggered_update_nessesary or True
             
     #delete any routing_table entries that have been signaled for deletion
     for router_id in router_ids_to_be_deleted:
         del router.routing_table[router_id]
             
-    if (is_trigged_update_nessesary):
+    if (is_triggered_update_nessesary):
         create_triggered_update(router)
 
 
