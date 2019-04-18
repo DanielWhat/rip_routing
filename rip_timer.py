@@ -96,7 +96,7 @@ def rip_update_timer(router):
     timer.start()
     
     #it's possible for a router to get cutoff from everything because a router died, in that case no point doing periodic updates
-    if (len(router.routing_table != 0)):
+    if (len(router.routing_table) != 0):
         send_routes_to_neighbours(router, router.routing_table.keys()) #send the entire routing_table to each neighbour
     
     
