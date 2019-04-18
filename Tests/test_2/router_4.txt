@@ -1,0 +1,3 @@
+router 4
+inputs 5007
+outputs 5006-1-3
