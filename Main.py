@@ -8,6 +8,7 @@ from MyUtils import getCommandLineArgument
 from FileReader import readConfig
 import routing_table 
 import select
+import datetime
 from rip_timer import start_background_timers
 from rip_sockets import generate_sockets
 from sys import exit, argv
@@ -101,6 +102,7 @@ def main():
             routing_table.process_packet(router, request_packet)
             
             #print routing table
+            print(datetime.datetime.now())
             print("*" * 10, "Routing Table", "*" * 10)
             for key in router.routing_table.keys():
                 print(router.routing_table[key])
