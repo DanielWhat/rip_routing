@@ -63,9 +63,14 @@ def readConfig(filePath):
                         raise ValueError("Router ID {} is duplicated in the configuration file. Router IDs must be unique.".format(output[2]))                    
             
                     outputLinks.append(link) #add the link port to the outputs
+                    
+            elif line.startswith("periodic-update-time"):
+                line = line[line.find(' '):]
+                periodic_update_time = checkParameter(line, int, 4, 1800)
+                
             else:
                 raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
-        return (routerID, inputPorts, outputLinks) #return the information in the file
+        return (routerID, inputPorts, outputLinks, periodic_update_time) #return the information in the file
     except (ValueError, TypeError) as error: #if we have some value or type error we have a syntax error in the file
         print(error)
         raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))

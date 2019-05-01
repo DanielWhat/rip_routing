@@ -6,13 +6,14 @@ import datetime
 
 class Route(object):
   
-  def __init__(self, address, first_hop_router_id, first_hop_port_num, cost, time, route_change=False):
+  def __init__(self, address, first_hop_router_id, first_hop_port_num, cost, time, update_time, route_change=False):
     self.destination_addr = address
     self.gateway = first_hop_router_id
     self.gateway_port = first_hop_port_num
     self.cost = cost
+    self.update_time = update_time
     self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=180)
+    self.__end_time = time + datetime.timedelta(seconds=self.update_time*6)
     self.route_change_flag = route_change
     self.garbage_collection_time = None
     
@@ -26,4 +27,4 @@ class Route(object):
   @time.setter
   def time(self, time):
     self.__start_time = time
-    self.__end_time = time + datetime.timedelta(seconds=180)
+    self.__end_time = time + datetime.timedelta(seconds=self.update_time*6)

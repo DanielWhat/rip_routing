@@ -46,21 +46,23 @@ class Router(object):
         self.next_periodic_update = None
         self.next_triggered_update = None
         self.triggered_update_routes = []
+        self.update_time = 30
 
 
 def main():
     filename = argv[1]
     
     #get directly connected routing info
-    own_router_id, input_ports, output_links = readConfig(filename)
+    own_router_id, input_ports, output_links, periodic_update_time = readConfig(filename)
     router = Router(dict(), own_router_id, input_ports, output_links)
+    router.update_time = periodic_update_time
     
     #configure input sockets
     socket_list = generate_sockets(router.input_ports)
     socket_fd_list = [socket_obj.fileno() for socket_obj in socket_list]
     socket_dict = {socket_obj.fileno(): socket_obj for socket_obj in socket_list}
     
-    routing_table.initialise_routing_table(router.routing_table, router.output_links)
+    routing_table.initialise_routing_table(router)
     
     #start background processes/timer
     start_background_timers(router) #@@@ when an exception occurs this timer needs to be stopped as well
@@ -102,6 +104,7 @@ def main():
             routing_table.process_packet(router, request_packet)
             
             #print routing table
+            print("Router ID:", router.router_id)
             print(datetime.datetime.now())
             print("*" * 10, "Routing Table", "*" * 10)
             for key in router.routing_table.keys():
@@ -112,5 +115,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-        
     

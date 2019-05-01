@@ -33,7 +33,7 @@ def get_packet_data(router, packet_bytearray):
     cost_to_sending_router = link_to_sending_router.metric
     
     #Generate a route object from the RIP entry
-    list_of_routes.append(Route(router_id, sending_router_id, sending_router_gateway_port, min(cost_to_sending_router + metric, 16), datetime.datetime.now()))
+    list_of_routes.append(Route(router_id, sending_router_id, sending_router_gateway_port, min(cost_to_sending_router + metric, 16), datetime.datetime.now(), router.update_time))
     
   return sending_router_id, list_of_routes
 

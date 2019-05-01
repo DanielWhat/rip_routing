@@ -19,16 +19,19 @@ def create_triggered_update(router):
     
     #if there is already a triggered update waiting to go -- @@ should there be a buffer here in case the triggered update is just about to go?
     if router.next_triggered_update != None:
+        print("Nothing to do")
         pass #andreas said to send everything in a triggered update, so there is nothing to do
         
     #if a periodic update would happen before our triggered update, then don't bother creating a triggered update
     elif router.next_periodic_update < current_time + datetime.timedelta(seconds=time_offset):
+        print("Triggered update will go out with the periodic update")
         pass #all routes will be updated in the periodic update, so there is nothing to do
     
     #a triggered update must be created 1 to 5 seconds from now
     else:
+        print("Triggered update will go out at", datetime.datetime.now() + datetime.timedelta(seconds=time_offset))
         router.next_triggered_update = datetime.datetime.now() + datetime.timedelta(seconds=time_offset)
-        threading.Timer(time_offset, send_routes_to_neighbours, [router, router.routing_table.keys()]).start()
+        threading.Timer(time_offset, send_routes_to_neighbours, [router, router.routing_table.keys(), True]).start()
 
 
 
@@ -54,7 +57,7 @@ def rip_garbage_collection(router):
             if router.routing_table[router_id].garbage_collection_time is None:
                 router.routing_table[router_id].cost = 16
                 router.routing_table[router_id].route_change_flag = True
-                router.routing_table[router_id].garbage_collection_time = current_time + datetime.timedelta(seconds=120) 
+                router.routing_table[router_id].garbage_collection_time = current_time + datetime.timedelta(seconds=router.update_time * 4) 
             
             #if there is an expired garbage collection timer, then delete the entry
             elif router.routing_table[router_id].garbage_collection_time <= current_time:
@@ -91,7 +94,7 @@ def rip_update_timer(router):
     """
     offset_time = randint(0, 5)
     #to minimise delays from computing, start new timer immediately
-    timer = threading.Timer(30+offset_time, rip_update_timer, [router])
+    timer = threading.Timer(router.update_time+offset_time, rip_update_timer, [router])
     router.next_periodic_update = datetime.datetime.now() + datetime.timedelta(seconds=30)
     timer.start()
     

@@ -45,12 +45,14 @@ def generate_sockets(input_ports):
 
 
 
-def send_routes_to_neighbours(router, route_ids_to_send):
+def send_routes_to_neighbours(router, route_ids_to_send, is_triggered_update=False):
     """
     Takes a router object, routing_table, and a list of router IDs to send. And 
     sends an update packet to all neighbours with the routes to each router in
     the list of router IDs.
     """
+    if is_triggered_update:
+        router.next_triggered_update = None #we are just about to send the triggered update, so there is no next triggered update now
     
     #create socket from where we will be sending --- this is probably bad practice @@@
     try:
