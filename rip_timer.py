@@ -92,7 +92,7 @@ def rip_update_timer(router):
     to neighbouring routers every 30 seconds. Not all routers will receive the 
     same update due to the split horizon with poison reverse rules.
     """
-    offset_time = randint(0, 5)
+    offset_time = randint(-5, 5)
     #to minimise delays from computing, start new timer immediately
     timer = threading.Timer(router.update_time+offset_time, rip_update_timer, [router])
     router.next_periodic_update = datetime.datetime.now() + datetime.timedelta(seconds=30)
