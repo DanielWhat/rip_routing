@@ -95,7 +95,7 @@ def rip_update_timer(router):
     offset_time = randint(-5, 5)
     #to minimise delays from computing, start new timer immediately
     timer = threading.Timer(router.update_time+offset_time, rip_update_timer, [router])
-    router.next_periodic_update = datetime.datetime.now() + datetime.timedelta(seconds=30)
+    router.next_periodic_update = datetime.datetime.now() + datetime.timedelta(seconds=router.update_time+offset_time)
     timer.start()
     
     #it's possible for a router to get cutoff from everything because a router died, in that case no point doing periodic updates
