@@ -80,7 +80,7 @@ def rip_garbage_collection(router):
             
     
     while router.is_routing_table_being_accessed:
-        print("Waiting for other processes to stop using routing table...")
+        #print("Waiting for other processes to stop using routing table...")
         sleep(0.0001)
         
     #delete any routing_table entries that have been signaled for deletion

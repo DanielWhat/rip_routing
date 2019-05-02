@@ -74,7 +74,7 @@ def send_routes_to_neighbours(router, route_ids_to_send, is_triggered_update=Fal
             packet = generate_rip_response_packet(router.router_id, neighbouring_router_link.routerID, router.routing_table, route_ids_to_send) #create the packet 
             
             try:
-                print(packet)
+                #print(packet)
                 socket_obj.sendto(packet, ('127.0.0.1', neighbouring_router_link.port)) #send the packet
             except Exception as error:
                 print("The following exception occured when trying to open a socket. The update packet to router {} has been skipped.".format(neighbouring_router_link.routerID))
