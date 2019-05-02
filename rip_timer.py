@@ -4,6 +4,7 @@ rip_timer.py, Author: jbr185, 66360439, dwa110, 28749539
 
 import threading
 import datetime
+from time import sleep
 from rip_sockets import send_routes_to_neighbours
 from random import randint  
 
@@ -77,6 +78,11 @@ def rip_garbage_collection(router):
             router.routing_table[router_id].route_change_flag = False
             is_triggered_update_nessesary = is_triggered_update_nessesary or True
             
+    
+    while router.is_routing_table_being_accessed:
+        print("Waiting for other processes to stop using routing table...")
+        sleep(0.0001)
+        
     #delete any routing_table entries that have been signaled for deletion
     for router_id in router_ids_to_be_deleted:
         del router.routing_table[router_id]
@@ -100,7 +106,9 @@ def rip_update_timer(router):
     
     #it's possible for a router to get cutoff from everything because a router died, in that case no point doing periodic updates
     if (len(router.routing_table) != 0):
+        router.is_routing_table_being_accessed = True
         send_routes_to_neighbours(router, router.routing_table.keys()) #send the entire routing_table to each neighbour
+        router.is_routing_table_being_accessed = False
     
     
     

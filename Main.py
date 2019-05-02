@@ -47,6 +47,7 @@ class Router(object):
         self.next_triggered_update = None
         self.triggered_update_routes = []
         self.update_time = 30
+        self.is_routing_table_being_accessed = False
 
 
 def main():
@@ -68,9 +69,11 @@ def main():
     start_background_timers(router) #@@@ when an exception occurs this timer needs to be stopped as well
     
     print("*" * 10, "Initial Routing Table", "*" * 10)
+    router.is_routing_table_being_accessed = True
     for key in router.routing_table.keys():
         print(router.routing_table[key])
         print("")
+    router.is_routing_table_being_accessed = False
     
     # ************ ENTER INFINITE SELECT LOOP ************
     while True:
@@ -100,6 +103,7 @@ def main():
                 print(error)
                 exit()       
             
+            router.is_routing_table_being_accessed = True
             #send the packet away to be processed
             routing_table.process_packet(router, request_packet)
             
@@ -110,6 +114,7 @@ def main():
             for key in router.routing_table.keys():
                 print(router.routing_table[key])
                 print("")
+            router.is_routing_table_being_accessed = False
         
         
 
