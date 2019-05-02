@@ -1,3 +1,4 @@
 router-id 6
 input-ports 5008, 5011
 outputs 5009-1-5, 5010-5-1
+periodic-update-time 15

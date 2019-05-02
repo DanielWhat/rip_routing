@@ -2,3 +2,4 @@ router-id 2
 
 input-ports 5000, 5003
 outputs 5001-1-1, 5002-3-3
+periodic-update-time 15

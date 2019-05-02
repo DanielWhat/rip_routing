@@ -1,3 +1,5 @@
+
 router-id 7
 input-ports 5012, 5015
 outputs 5013-8-1, 5014-6-4
+periodic-update-time 15

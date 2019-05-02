@@ -1,3 +1,4 @@
 router-id 4
 input-ports 5004, 5014, 5007
 outputs 5005-4-3, 5006-2-5, 5015-6-7
+periodic-update-time 15
