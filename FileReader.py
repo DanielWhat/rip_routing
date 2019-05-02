@@ -12,6 +12,7 @@ def readConfig(filePath):
         inputPorts = [] #the input ports we are listening to
         outputLinks = [] #the output connections we are sending to
         otherRouterIDs = [] #for keeping track of the router IDs we have to ensure no duplicates
+        periodic_update_time = 30 #if not specified the periodic update time will default to 30 sec
 
         #open the file for reading
         file = open(filePath, 'r')
@@ -41,6 +42,7 @@ def readConfig(filePath):
                         inputPorts.append(interface)
                     else:
                         raise ValueError("Inferface socket port {} already in use".format(interface))
+                    
             elif line.startswith("outputs"):
                 line = line[line.find(' '):].split(',') #split after "outputs"
 
@@ -68,9 +70,13 @@ def readConfig(filePath):
                 line = line[line.find(' '):]
                 periodic_update_time = checkParameter(line, int, 4, 1800)
                 
-            else:
+            else: #the line is starting with something unknown
                 raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+            
+        if routerID == -1 or len(outputLinks) == 0 or len(inputPorts) == 0:
+            raise ValueError("router-id, outputs and input-ports must all be specified in the file")
+            
         return (routerID, inputPorts, outputLinks, periodic_update_time) #return the information in the file
+    
     except (ValueError, TypeError) as error: #if we have some value or type error we have a syntax error in the file
-        print(error)
-        raise SyntaxError("Syntax error in file \"{0}\", on line {1}".format(filePath, index + 1))
+        raise SyntaxError("Syntax error in file \"{0}\", on line {1}\nError: {2}".format(filePath, index + 1, error))

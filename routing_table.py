@@ -9,18 +9,18 @@ from rip_packet import is_packet_valid, get_packet_data
     
     
   
-def initialise_routing_table(routing_table, output_links):
+def initialise_routing_table(router):
   """
   Takes a list of directly connected output Links and initialises the given 
   routing table.
   """
   
-  if len(routing_table) != 0 or type(routing_table) != dict:
+  if len(router.routing_table) != 0 or type(router.routing_table) != dict:
     raise ValueError("The routing table must be an empty dictionary")
   
-  for link in output_links:
+  for link in router.output_links:
     #put each directly connected route into the routing table
-    routing_table[link.routerID] = Route(link.routerID, link.routerID, link.port, link.metric, datetime.datetime.now())
+    router.routing_table[link.routerID] = Route(link.routerID, link.routerID, link.port, link.metric, datetime.datetime.now(), router.update_time)
  
     
     
@@ -44,7 +44,7 @@ def process_packet(router, packet_bytearray):
     #the second condition is for when a router comes out of garbage collection, and we were previously using an indirect route to get to them (see test_2)
     if router.routing_table.get(sending_router_id) == None or router.routing_table[sending_router_id].cost > cost_to_sending_router: 
       #make a new route for the deleted directly connected router
-      direct_route = Route(sending_router_id, sending_router_id, sending_router_gateway_port, cost_to_sending_router, datetime.datetime.now())
+      direct_route = Route(sending_router_id, sending_router_id, sending_router_gateway_port, cost_to_sending_router, datetime.datetime.now(), router.update_time)
       
       #add this directly connected router back into the routing table
       router.routing_table[sending_router_id] = direct_route  
@@ -83,7 +83,7 @@ def process_packet(router, packet_bytearray):
           
           if (route.cost == 16):
             #the route should be garbage collected 120 seconds from now
-            router.routing_table[route.destination_addr].garbage_collection_time = datetime.datetime.now() + datetime.timedelta(seconds=120)
+            router.routing_table[route.destination_addr].garbage_collection_time = datetime.datetime.now() + datetime.timedelta(seconds=router.update_time*4)
             router.routing_table[route.destination_addr].route_change_flag = True #Andreas said to only to implement triggered updates for invalid routes.
          
           
